@@ -142,12 +142,12 @@ public class SRCountdownTimer: UIView {
      *   - beginingValue: Value to start countdown from.
      *   - interval: Interval between reducing the counter(1 second by default)
      */
-    public func start(beginingValue: Int, interval: TimeInterval = 1) {
+    public func start(beginingValue: Int, interval: TimeInterval = 1, elapsedTime: Double = 0) {
         self.beginingValue = beginingValue
         self.interval = interval
 
         totalTime = TimeInterval(beginingValue) * interval
-        elapsedTime = 0
+        self.elapsedTime = elapsedTime
         currentCounterValue = beginingValue
 
         timer?.invalidate()
