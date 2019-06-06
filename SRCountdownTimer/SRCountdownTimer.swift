@@ -1,18 +1,18 @@
 /*
  MIT License
-
+ 
  Copyright (c) 2017 Ruslan Serebriakov <rsrbk1@gmail.com>
-
+ 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
-
+ 
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
-
+ 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,23 +41,23 @@ public class SRCountdownTimer: UIView {
     @IBInspectable public var labelFont: UIFont?
     @IBInspectable public var labelTextColor: UIColor?
     @IBInspectable public var timerFinishingText: String?
-
+    
     public weak var delegate: SRCountdownTimerDelegate?
     
     // use minutes and seconds for presentation
     public var useMinutesAndSecondsRepresentation = false
-
+    
     private var timer: Timer?
     private var beginingValue: Int = 1
     private var totalTime: TimeInterval = 1
     private var elapsedTime: TimeInterval = 0
     private var interval: TimeInterval = 1 // Interval which is set by a user
     private let fireInterval: TimeInterval = 0.01 // ~60 FPS
-
+    
     private lazy var counterLabel: UILabel = {
         let label = UILabel()
         self.addSubview(label)
-
+        
         label.textAlignment = .center
         label.frame = self.bounds
         if let font = self.labelFont {
@@ -66,7 +66,7 @@ public class SRCountdownTimer: UIView {
         if let color = self.labelTextColor {
             label.textColor = color
         }
-
+        
         return label
     }()
     private var currentCounterValue: Int = 0 {
@@ -82,19 +82,19 @@ public class SRCountdownTimer: UIView {
                     }
                 }
             }
-
+            
             delegate?.timerDidUpdateCounterValue?(newValue: currentCounterValue)
         }
     }
-
+    
     // MARK: Inits
     override public init(frame: CGRect) {
         if frame.width != frame.height {
             fatalError("Please use a rectangle frame for SRCountdownTimer")
         }
-
+        
         super.init(frame: frame)
-
+        
         layer.cornerRadius = frame.width / 2
         clipsToBounds = true
     }
@@ -102,16 +102,16 @@ public class SRCountdownTimer: UIView {
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-
+    
     override public func draw(_ rect: CGRect) {
         super.draw(rect)
-
+        
         let context = UIGraphicsGetCurrentContext()
         let radius = (rect.width - lineWidth) / 2
         let currentAngle = CGFloat((.pi * 2 * elapsedTime) / totalTime)
-
+        
         context?.setLineWidth(lineWidth)
-
+        
         // Main line
         context?.beginPath()
         context?.addArc(
@@ -122,7 +122,7 @@ public class SRCountdownTimer: UIView {
             clockwise: false)
         context?.setStrokeColor(lineColor.cgColor)
         context?.strokePath()
-
+        
         // Trail line
         context?.beginPath()
         context?.addArc(
@@ -134,7 +134,7 @@ public class SRCountdownTimer: UIView {
         context?.setStrokeColor(trailLineColor.cgColor)
         context?.strokePath()
     }
-
+    
     // MARK: Public methods
     /**
      * Starts the timer and the animation. If timer was previously runned, it'll invalidate it.
@@ -142,37 +142,37 @@ public class SRCountdownTimer: UIView {
      *   - beginingValue: Value to start countdown from.
      *   - interval: Interval between reducing the counter(1 second by default)
      */
-    public func start(beginingValue: Int, interval: TimeInterval = 1, elapsedTime: Double = 0) {
+    public func start(beginingValue: Int, interval: TimeInterval = 1, elapsedTime: Double) {
         self.beginingValue = beginingValue
         self.interval = interval
-
+        
         totalTime = TimeInterval(beginingValue) * interval
         self.elapsedTime = elapsedTime
         currentCounterValue = beginingValue
-
+        
         timer?.invalidate()
         timer = Timer(timeInterval: fireInterval, target: self, selector: #selector(SRCountdownTimer.timerFired(_:)), userInfo: nil, repeats: true)
-
-        RunLoop.main.add(timer!, forMode: RunLoop.Mode.common)
-
+        
+        RunLoop.main.add(timer!, forMode: RunLoop.Mode.commonModes)
+        
         delegate?.timerDidStart?()
     }
-
+    
     /**
      * Pauses the timer with saving the current state
      */
     public func pause() {
         timer?.fireDate = Date.distantFuture
-
+        
         delegate?.timerDidPause?()
     }
-
+    
     /**
      * Resumes the timer from the current state
      */
     public func resume() {
         timer?.fireDate = Date()
-
+        
         delegate?.timerDidResume?()
     }
     
@@ -195,14 +195,14 @@ public class SRCountdownTimer: UIView {
         let secondString = seconds < 10 ? "0" + seconds.description : seconds.description
         return minutes.description + ":" + secondString
     }
-
+    
     // MARK: Private methods
     @objc private func timerFired(_ timer: Timer) {
         elapsedTime += fireInterval
-
+        
         if elapsedTime < totalTime {
             setNeedsDisplay()
-
+            
             let computedCounterValue = beginingValue - Int(elapsedTime / interval)
             if computedCounterValue != currentCounterValue {
                 currentCounterValue = computedCounterValue
